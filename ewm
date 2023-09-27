@@ -27,3 +27,24 @@ for id, decay_factor in decay_factors.items():
 df['Normalized_Weight'] = df.groupby('ID')['Weight'].transform(lambda x: x / x.sum())
 
 print(df[['ID', 'Date', 'Value', 'Weight', 'Normalized_Weight']])
+
+
+
+
+
+df = pd.DataFrame(data)
+
+# Sort the DataFrame by ID, then by date in ascending order
+df.sort_values(by=['ID', 'Date'], inplace=True)
+
+# Define a universal decay factor
+decay_factor = 0.1
+
+# Calculate the weights based on exponential decay with the universal decay factor
+reference_date = df['Date'].max()  # Use the most recent date as the reference date
+df['Weight'] = df['Date'].apply(lambda x: np.exp(-decay_factor * abs((x - reference_date).days)))
+
+# Normalize the weights within each ID group
+df['Normalized_Weight'] = df.groupby('ID')['Weight'].transform(lambda x: x / x.sum())
+
+print(df[['ID', 'Date', 'Value', 'Weight', 'Normalized_Weight']])
