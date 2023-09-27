@@ -14,35 +14,14 @@ df = pd.DataFrame(data)
 # Sort the DataFrame by ID, then by date in ascending order
 df.sort_values(by=['ID', 'Date'], inplace=True)
 
-# Define decay factors for each ID
-decay_factors = {'A': 0.1, 'B': 0.2, 'C': 0.05}
-
-# Calculate the weights based on exponential decay for each ID
-for id, decay_factor in decay_factors.items():
-    id_mask = df['ID'] == id
-    reference_date = df.loc[id_mask, 'Date'].max()  # Use the most recent date within the ID group as the reference date
-    df.loc[id_mask, 'Weight'] = df.loc[id_mask, 'Date'].apply(lambda x: np.exp(-decay_factor * abs((x - reference_date).days)))
-
-# Normalize the weights within each ID group
-df['Normalized_Weight'] = df.groupby('ID')['Weight'].transform(lambda x: x / x.sum())
-
-print(df[['ID', 'Date', 'Value', 'Weight', 'Normalized_Weight']])
-
-
-
-
-
-df = pd.DataFrame(data)
-
-# Sort the DataFrame by ID, then by date in ascending order
-df.sort_values(by=['ID', 'Date'], inplace=True)
-
 # Define a universal decay factor
 decay_factor = 0.1
 
-# Calculate the weights based on exponential decay with the universal decay factor
-reference_date = df['Date'].max()  # Use the most recent date as the reference date
-df['Weight'] = df['Date'].apply(lambda x: np.exp(-decay_factor * abs((x - reference_date).days)))
+# Calculate the weights based on exponential decay for each ID and its respective reference date
+for id in df['ID'].unique():
+    id_mask = df['ID'] == id
+    reference_date = df.loc[id_mask, 'Date'].max()  # Use the most recent date within the ID group as the reference date
+    df.loc[id_mask, 'Weight'] = df.loc[id_mask, 'Date'].apply(lambda x: np.exp(-decay_factor * abs((x - reference_date).days)))
 
 # Normalize the weights within each ID group
 df['Normalized_Weight'] = df.groupby('ID')['Weight'].transform(lambda x: x / x.sum())
