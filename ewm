@@ -1,29 +1,34 @@
 import pandas as pd
-import numpy as np
 
-# Sample data (replace this with your time series data)
+# Sample DataFrame
 data = {
-    'ID': ['A', 'A', 'B', 'B', 'B', 'C', 'C', 'C'],
-    'Date': pd.date_range(start='2023-01-01', periods=8, freq='D'),
-    'Value': [10, 15, 20, 25, 30, 35, 40, 45]
+    'ID': ['A', 'A', 'B', 'B', 'C', 'C'],
+    'Time': ['2023-01-01', '2023-01-02', '2023-01-01', '2023-01-02', '2023-01-01', '2023-01-02'],
+    'Value': [10, 15, 20, 25, 30, 35]
 }
 
-# Create a DataFrame
 df = pd.DataFrame(data)
 
-# Sort the DataFrame by ID, then by date in ascending order
-df.sort_values(by=['ID', 'Date'], inplace=True)
+# Convert the 'Time' column to datetime
+df['Time'] = pd.to_datetime(df['Time'])
 
-# Define a universal decay factor
-decay_factor = 0.1
+# Initialize an empty DataFrame to store results
+result_df = pd.DataFrame(columns=['ID', 'Time'])
 
-# Calculate the weights based on exponential decay for each ID and its respective reference date
+# Iterate over unique IDs
 for id in df['ID'].unique():
-    id_mask = df['ID'] == id
-    reference_date = df.loc[id_mask, 'Date'].max()  # Use the most recent date within the ID group as the reference date
-    df.loc[id_mask, 'Weight'] = df.loc[id_mask, 'Date'].apply(lambda x: np.exp(-decay_factor * abs((x - reference_date).days)))
+    # Filter the DataFrame for the current ID
+    id_df = df[df['ID'] == id]
+    
+    # Sort the DataFrame by 'Time' and get the earliest time
+    earliest_time = id_df.sort_values('Time')['Time'].iloc[0]
+    
+    # Append the result to the result DataFrame
+    result_df = result_df.append({'ID': id, 'Time': earliest_time}, ignore_index=True)
 
-# Normalize the weights within each ID group
-df['Normalized_Weight'] = df.groupby('ID')['Weight'].transform(lambda x: x / x.sum())
+    # Sort the DataFrame by 'Time' and get the earliest two times
+    earliest_two_times = id_df.sort_values('Time')['Time'].head(2).tolist()
 
-print(df[['ID', 'Date', 'Value', 'Weight', 'Normalized_Weight']])
+    # Append the results to the result DataFrame
+    result_df = result_df.append({'ID': id, 'Time': earliest_two_times}, ignore_index=True)
+
