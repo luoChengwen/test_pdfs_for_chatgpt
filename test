@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score, roc_curve, auc
+
+# Sample data
+similarity_scores = np.random.uniform(-1, 1, 500)  # Replace with your actual similarity scores
+labels = np.random.randint(2, size=500)  # Replace with your actual binary labels
+
+# Define buckets based on similarity score ranges
+buckets = [(-1, -0.9), (-0.9, -0.8), (-0.8, -0.7), (-0.7, -0.6), (-0.6, -0.5),
+           (-0.5, -0.4), (-0.4, -0.3), (-0.3, -0.2), (-0.2, -0.1), (-0.1, 0.0),
+           (0.0, 0.1), (0.1, 0.2), (0.2, 0.3), (0.3, 0.4), (0.4, 0.5),
+           (0.5, 0.6), (0.6, 0.7), (0.7, 0.8), (0.8, 0.9), (0.9, 1.0)]
+
+gini_coefficients = []
+
+# Calculate Gini coefficient for each bucket
+for bucket in buckets:
+    bucket_indices = np.where((similarity_scores >= bucket[0]) & (similarity_scores < bucket[1]))[0]
+    bucket_labels = labels[bucket_indices]
+    bucket_scores = similarity_scores[bucket_indices]
+    gini = 2 * roc_auc_score(bucket_labels, bucket_scores) - 1
+    gini_coefficients.append(gini)
+
+# Plot the Gini coefficients
+bucket_labels = [f"{bucket[0]} to {bucket[1]}" for bucket in buckets]
+
+plt.figure(figsize=(12, 6))
+plt.bar(bucket_labels, gini_coefficients)
+plt.xticks(rotation=45, ha='right')
+plt.xlabel('Similarity Score Buckets')
+plt.ylabel('Gini Coefficient')
+plt.title('Gini Coefficients by Similarity Score Buckets')
+plt.show()
